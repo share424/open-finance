@@ -1,0 +1,4 @@
+*.png
+config.json
+__pychace__
+env

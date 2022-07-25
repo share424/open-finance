@@ -1,0 +1,7 @@
+version: "3.8"
+services:
+  bot:
+    build: .
+    command: python3 main.py
+    volumes:
+      - ./config.json:/app/config.json
