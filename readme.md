@@ -22,7 +22,6 @@
     ```json
     {
       "access_token": "...", // telegram bot access_token
-      "user_id": "...", // telegram bot user_id
       // google api key
       "type": "service_account",
       "project_id": "...",
@@ -33,8 +32,17 @@
       "auth_uri": "https://accounts.google.com/o/oauth2/auth",
       "token_uri": "https://oauth2.googleapis.com/token",
       "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-      "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/openfinance%40openfinance-357405.iam.gserviceaccount.com",
-      "sheet_url": "..." // your sheet url
+      "client_x509_cert_url": "...",
+      "users": [
+        {
+          "user_id": "...",
+          "sheet_url": "..."
+        },
+        {
+          "user_id": "...",
+          "sheet_url": "..."
+        }
+      ]
     }
     ```
 4. Share your sheets to `client_email` as editor
