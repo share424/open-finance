@@ -61,7 +61,7 @@
 
 ### Info
 ```
-/info [Sheet Name|Month in int] [Year in int]
+/info [Sheet Name|Year in int] [Month in int]
 ```
 
 ### User Info
