@@ -5,6 +5,7 @@ Google Spreadheet modules
 """
 
 from typing import List
+import logging
 import sys
 import datetime
 import gspread
@@ -17,6 +18,7 @@ class GSheet:
     """
 
     def __init__(self, sheet_url: str, config_path: str = 'config.json') -> None:
+        logging.info('Connecting to Google Spreadsheet: %s', sheet_url)
         self.app = gspread.service_account(filename=config_path)
         self.spreadsheet = self.app.open_by_url(sheet_url)
 
@@ -26,6 +28,7 @@ class GSheet:
 
     def get_or_create_worksheet(self, worksheet_name: str) -> gspread.Worksheet:
         '''Return worksheet if exists, otherwise create new worksheet'''
+        logging.info('Getting or creating worksheet: %s', worksheet_name)
         if self.is_worksheet_exists(worksheet_name):
             return self.spreadsheet.worksheet(worksheet_name)
         worksheet = self.spreadsheet.add_worksheet(
@@ -39,6 +42,7 @@ class GSheet:
 
     def add_data(self, data: Finance, title: str = None) -> None:
         '''Add data to worksheet'''
+        logging.info('Adding data to worksheet: %s %s', title, data)
         # get data month and year
         if title is None:
             title = data.date.strftime('%B %Y')
@@ -48,6 +52,7 @@ class GSheet:
 
     def get_data(self, title: str) -> List[Finance]:
         '''Return data from worksheet'''
+        logging.info('Getting data from worksheet: %s', title)
         if not self.is_worksheet_exists(title):
             raise ValueError('Sheet does not exist')
         worksheet = self.spreadsheet.worksheet(title)
@@ -69,4 +74,6 @@ if __name__ == '__main__':
     sheet = sys.argv[2]
 
     gsheet = GSheet(url)
-    print(gsheet.get_data(sheet))
+    datas = gsheet.get_data(sheet)
+    for d in datas:
+        print(d.get_row())

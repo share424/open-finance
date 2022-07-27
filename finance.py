@@ -36,6 +36,9 @@ class Finance:
         '''Return row data in list (used for gsheet)'''
         return [self.get_date(), self.type, self.amount, self.note]
 
+    def __str__(self) -> str:
+        return ' '.join(self.get_row())
+
 
 def get_surplus(data: List[Finance]) -> int:
     """

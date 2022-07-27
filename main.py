@@ -5,16 +5,23 @@ Main Bot modules
 """
 import datetime
 import os
+import logging
 from telegram import Update, User
+from telegram.error import BadRequest, NetworkError
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, Application
 import matplotlib.pyplot as plt
 from finance import Finance, get_surplus, get_info
 from gsheet import GSheet
 from helper import parse_int, load_config
 
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 
 def authenticate(user: User) -> bool:
     '''Return account data'''
+    logger.info('[%s] Authenticating', user.id)
     user_config = load_config()
     for account in user_config['users']:
         if str(user.id) == str(account['user_id']):
@@ -59,9 +66,11 @@ async def income(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         gsheet.add_data(data)
 
         await update.message.reply_text('Added income')
-        print(f'Added outcome {amount} {notes} {data.get_date()}')
+        logger.info('[%s] Added income %d %s %s',
+                      update.effective_user.id, amount, notes, data.get_date())
     except ValueError as error:
         await update.message.reply_text(f'Error: {error}')
+        logger.error(error, exc_info=True)
 
 
 async def outcome(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -83,9 +92,11 @@ async def outcome(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         gsheet.add_data(data)
 
         await update.message.reply_text('Added outcome')
-        print(f'Added outcome {amount} {notes} {data.get_date()}')
+        logger.info('[%s] Added outcome %d %s %s',
+                      update.effective_user.id, amount, notes, data.get_date())
     except ValueError as error:
         await update.message.reply_text(f'Error: {error}')
+        logger.error(error, exc_info=True)
 
 
 def generate_income_outcome_chart(title: str, surplus: dict, tmp_dir: str) -> str:
@@ -157,7 +168,8 @@ def get_title(context: ContextTypes.DEFAULT_TYPE) -> str:
 
         # convert int month to string
         if month.isdigit():
-            month = datetime.date(year=year, month=parse_int(month), day=1).strftime('%B')
+            month = datetime.date(year=year, month=parse_int(
+                month), day=1).strftime('%B')
         else:
             month = month.capitalize()
         title = f'{month} {year}'
@@ -188,8 +200,7 @@ async def info(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         outcomes = get_info(datas, 'outcome')
 
         summary = summary_data(title, surplus, incomes, outcomes)
-
-        await update.message.reply_markdown(summary)
+        await update.message.reply_text(summary)
 
         # create temp dir
         dir_path = os.path.join(os.getcwd(), 'temp',
@@ -212,12 +223,14 @@ async def info(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         with open(chart, 'rb') as img:
             await update.message.reply_photo(photo=img)
 
-    except ValueError as error:
+        logger.info('[%s] Info %s', update.effective_user.id, summary)
+
+    except (ValueError, BadRequest, NetworkError) as error:
         await update.message.reply_text(f'Error: {error}')
-        print(error)
+        logger.error(error, exc_info=True)
 
 if __name__ == '__main__':
-    print('Starting bot...')
+    logger.info('Starting bot...')
     config = load_config()
 
     app: Application = ApplicationBuilder().token(
@@ -229,5 +242,5 @@ if __name__ == '__main__':
     app.add_handler(CommandHandler("info", info))
     app.add_handler(CommandHandler("help", help_commands))
 
-    print('Bot started')
+    logger.info('Bot started')
     app.run_polling()
